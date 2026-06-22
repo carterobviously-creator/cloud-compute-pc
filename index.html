@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cloud Compute Server Builder</title>
+<script src="https://unpkg.com/puterjs/dist/puter.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/DragControls.js"></script>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="header">
+  <h1>&#9729; Cloud Compute</h1>
+  <nav class="nav" id="main-nav">
+    <button class="nav-btn" data-page="dashboard">Dashboard</button>
+    <button class="nav-btn" data-page="terminal">Terminal</button>
+    <button class="nav-btn" data-page="configurator3d">3D Configurator</button>
+    <button class="nav-btn" data-page="ai">AI Playground</button>
+  </nav>
+</header>
+
+<main class="main" id="app">
+
+  <!-- DASHBOARD -->
+  <section id="page-dashboard" class="page"></section>
+
+  <!-- TERMINAL -->
+  <section id="page-terminal" class="page">
+    <div class="card">
+      <h2>&#128187; Bash Terminal</h2>
+      <p>Cloud-powered bash shell via puter.js</p>
+      <div class="terminal-container" id="terminal-container">
+        <div class="terminal-output" id="terminal-output"></div>
+        <div class="terminal-input-line">
+          <span class="prompt">user@cloud:~$</span>
+          <input type="text" id="terminal-input" class="terminal-input" placeholder="Type a command..." autofocus spellcheck="false">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3D CONFIGURATOR -->
+  <section id="page-configurator3d" class="page">
+    <div class="card config3d-card">
+      <h2>&#128736;&#65039; 3D Server Configurator</h2>
+      <p>Drag parts into the case to build your server &mdash; click the case to open/close it</p>
+      
+      <div class="config3d-layout">
+        <div class="config3d-sidebar" id="config-sidebar">
+          <div class="component-tabs" id="comp-tabs"></div>
+          <div class="component-options" id="comp-options"></div>
+          <div id="drag-hint" class="drag-hint">&#128070; Click a part above, then click in the 3D view to place it</div>
+          <div class="config3d-summary" id="config3d-summary">
+            <h3>Your Build</h3>
+            <div id="build-list"></div>
+            <div class="build-total">
+              <span>Total:</span>
+              <span id="build-total-price">$0</span>
+            </div>
+            <button class="btn" onclick="save3DConfig()">&#128190; Save Build</button>
+            <button class="btn secondary" onclick="navigateTo('terminal')">&#128187; Deploy</button>
+          </div>
+        </div>
+        <div class="config3d-viewport">
+          <div class="viewport-header">
+            <span id="view-label">BUILD AREA</span>
+            <div class="view-controls">
+              <button class="icon-btn" onclick="resetCamera()" title="Reset view">&#8634;</button>
+              <button class="icon-btn" onclick="toggleAutoRotate()" title="Auto rotate">&#9654;</button>
+              <button class="icon-btn" onclick="clearPlacedParts()" title="Clear all">&#128465;</button>
+            </div>
+          </div>
+          <div id="three-container"></div>
+          <div class="viewport-footer" id="view-footer">
+            <span id="placement-info">Click a component, then click in the scene to place it</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AI PLAYGROUND -->
+  <section id="page-ai" class="page">
+    <div class="card">
+      <h2>&#129302; AI Model Playground</h2>
+      <p>Powered by smol-lm 1.7B on GPU</p>
+      <div class="ai-layout">
+        <div class="ai-sidebar">
+          <div class="model-list" id="model-list">
+            <div class="model-card active" data-model="chat" onclick="selectModel('chat')">
+              <div class="model-icon">&#128172;</div>
+              <div><strong>smol-lm Chat</strong><span>Conversation</span></div>
+            </div>
+            <div class="model-card" data-model="code" onclick="selectModel('code')">
+              <div class="model-icon">&#128187;</div>
+              <div><strong>smol-lm Code</strong><span>Code gen</span></div>
+            </div>
+            <div class="model-card" data-model="generate" onclick="selectModel('generate')">
+              <div class="model-icon">&#9997;&#65039;</div>
+              <div><strong>smol-lm Text</strong><span>Text gen</span></div>
+            </div>
+            <div class="model-card" data-model="analyze" onclick="selectModel('analyze')">
+              <div class="model-icon">&#128200;</div>
+              <div><strong>smol-lm Analyze</strong><span>Analysis</span></div>
+            </div>
+          </div>
+          <div class="gpu-status"><div class="gpu-indicator" id="gpu-indicator"></div><span id="gpu-status-text">GPU: Ready</span></div>
+        </div>
+        <div class="ai-main">
+          <div class="ai-header">
+            <h3 id="ai-model-name">smol-lm Chat</h3>
+            <div class="ai-controls">
+              <label>Temp: <input type="range" id="temperature" min="0" max="2" step="0.1" value="0.7"><span id="temp-value">0.7</span></label>
+              <label>Max: <input type="number" id="max-tokens" value="512" min="64" max="4096" step="64"></label>
+            </div>
+          </div>
+          <div class="ai-conversation" id="ai-conversation"></div>
+          <div class="ai-input-area">
+            <textarea id="ai-input" rows="2" placeholder="Message smol-lm..." spellcheck="false"></textarea>
+            <button class="btn" onclick="sendToAI()">&#10148;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer"><p>Cloud Compute &mdash; Build &middot; Deploy &middot; Run AI</p></footer>
+
+<script src="js/three-configurator.js"></script>
+<script src="js/ai-playground.js"></script>
+<script src="js/terminal.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
